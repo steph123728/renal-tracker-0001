@@ -21,9 +21,8 @@
         .food-section { background-color: #f1f8e9; border-left: 6px solid #8bc34a; }
         .med-section { background-color: #f3e5f5; border-left: 6px solid #9c27b0; }
         .fluid-section { background-color: #e3f2fd; border-left: 6px solid #2196f3; }
-        .bp-section { background-color: #fce4ec; border-left: 6px solid #e91e63; }
         .welcome-msg { color: #0d47a1; font-weight: bold; margin-bottom: 5px; font-size: 1.2rem; text-align: center; }
-        .summary-msg { background: #fff; padding: 12px; border-radius: 10px; font-size: 0.95rem; margin-bottom: 20px; border-left: 4px solid #2196f3; color: #0d47a1; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .summary-msg { background: #fff; padding: 12px; border-radius: 10px; font-size: 0.95rem; margin-bottom: 20px; border-left: 4px solid #2196f3; color: #0d47a1; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         /* Force Tabs to Be Completely Invisible When Inactive */
         .tab-content { 
             display: none !important; 
@@ -102,7 +101,7 @@
     <div class="card" style="width: 280px; text-align: center; background: white; border-radius: 15px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
         <h3>我的健康日誌 - 解鎖 📝🔓</h3>
         <input type="password" id="pinInput" maxlength="4" placeholder="輸入 4 位 PIN" inputmode="numeric" style="text-align:center; font-size: 20px; padding: 12px; border: 1px solid #ddd; border-radius: 8px;">
-        <button id="loginBtn" onclick="processLoginManual()" style="background: #3498db; color: white; padding: 12px; border: none; border-radius: 8px; font-weight: bold; width: 100%; cursor: pointer;">解鎖</button>
+        <button id="loginBtn" onclick="processLoginManual()" style="background: #3498db; color: white; padding: 12px; border: none; border-radius: 8px; font-weight: bold; width: 100%; cursor: pointer;">🔓 解鎖</button>
     </div>
 </div>
     
@@ -181,17 +180,6 @@
             <button onclick="addFluid()" style="background:#1976d2;">新增記錄</button>
             <div id="dailyFluidList" style="margin-top:10px;"></div>
         </div>
-
-        <!-- 🩸 Blood Pressure Card -->
-        <div class="card bp-section">
-            <h2>🩸 血壓紀錄</h2>
-            <div style="display:flex; gap:5px; margin-bottom:10px;">
-                <input type="number" id="bpSys" placeholder="收縮壓 (上)" style="width:48%;">
-                <input type="number" id="bpDia" placeholder="舒張壓 (下)" style="width:48%;">
-            </div>
-            <button onclick="addBloodPressure()" style="background:#c2185b;">新增記錄</button>
-            <div id="dailyBPList" style="margin-top:10px;"></div>
-        </div>
     </div> <!-- Clean end of Tab 1 -->
 
     <!-- 📋 TAB 2: HISTORICAL RECORDS -->
@@ -219,7 +207,7 @@
 
     <!-- Bottom Controls (Now neatly bounded at the foot of mainApp) -->
     <button onclick="location.reload()" style="background:#34495e; margin-top:20px;">登出</button>
-    <button style="background: #95a5a6; font-size: 12px; margin-top: 10px; border-radius: 8px; color: white; border: none; padding: 8px; width: 100%; margin-bottom: 50px;" onclick="if(confirm('確定要清除所有數據嗎？此操作無法復原。')) { localStorage.clear(); location.reload(); }">🗑️ 清除所有數據</button>
+    <button style="background: #95a5a6; font-size: 12px; margin-top: 10px; border-radius: 8px; color: white; border: none; padding: 8px; width: 100%; margin-bottom: 50px;" onclick="if(confirm('確定要清空所有資料嗎？')) localStorage.clear(); location.reload();">🗑️ 清空數據</button>
 </div> <!-- Safe closure of mainApp -->
 
 <script>
@@ -311,7 +299,7 @@
         let missed = checkSlots.filter(slot => curHour > slot.hour || (curHour === slot.hour && curMin >= 5)) 
                                .filter(slot => !(s.m || []).some(log => log.timeSlot === slot.label)).map(slot => slot.label);
         if (missed.length > 0) {
-            feedbackContent += `<div style="color: #e67e22; margin-top: 10px; font-weight: bold; border-top: 1px solid rgba(230, 126, 34, 0.2); padding-top: 8px;">⚠️ 注意：暫時沒有 ${missed.join('、')} 的用藥紀錄！</div>`;
+            feedbackContent += `<div style="color: #e67e22; margin-top: 10px; font-weight: bold; border-top: 1px solid rgba(230, 126, 34, 0.2); padding-top: 8px;">⚠️ 注意：暫時沒有 ${missed.join('、')} 的用藥紀錄 - 趕快補上吧！</div>`;
         }
         if (summaryDiv) {
             summaryDiv.innerHTML = feedbackContent;
@@ -350,7 +338,7 @@
         const builder = (logs, k) => (logs || []).map(x => `
             <div class="entry-log-item">
                 <div style="display:flex; justify-content:space-between; align-items: flex-start;">
-                    <div>[${x.timeOfUse || x.time}] ${x.name || x.label || x.timeSlot || (x.systolic + '/' + x.diastolic)} ${x.amt ? x.amt + 'mL' : ''} ${x.mealType ? '(' + x.mealType + ')' : ''} @${x.location || '未註明'}${x.comment ? `<div class="medical-comment">${x.comment}</div>` : ''}</div>
+                    <div>[${x.timeOfUse || x.time}] ${x.name || x.label || x.timeSlot || ''} ${x.amt ? x.amt + 'mL' : ''} ${x.mealType ? '(' + x.mealType + ')' : ''} @${x.location || ''}</div>
                     <div style="display:flex; gap:5px; margin-left:10px;">
                         <button onclick="editItem('${k}', ${x.id})" style="background:#f1c40f; color:black; padding:4px 8px; font-size:10px; width:auto; margin:0;">修改</button> 
                         <button onclick="deleteItem('${k}', ${x.id})" style="background:#e74c3c; color:white; padding:4px 8px; font-size:10px; width:auto; margin:0;">刪除</button>
@@ -361,7 +349,6 @@
         if (document.getElementById('dailyFluidList')) document.getElementById('dailyFluidList').innerHTML = builder(s.f || [], 'f_logs');
         if (document.getElementById('dailyFoodList')) document.getElementById('dailyFoodList').innerHTML = builder(s.d || [], 'd_logs');
         if (document.getElementById('dailyMedList')) document.getElementById('dailyMedList').innerHTML = builder(s.m || [], 'm_list');
-        if (document.getElementById('dailyBPList')) document.getElementById('dailyBPList').innerHTML = builder(s.bp || [], 'bp_logs');
     }
     
     // 3. ACTIONS
@@ -369,11 +356,11 @@
         const n = document.getElementById('foodName').value; if(!n) return;
         const mealType = document.getElementById('mealType').value;
         const comment = (function(f){
-            let r = []; if (HIGH_PHOS_KEYWORDS.some(k=>f.includes(k)) || f.includes("加工") || f.includes("火腿") || f.includes("香腸")) { r.push("⛔<br>注意高磷食物！<br>請先跟註冊營養師討論。"); }
+            let r = []; if (HIGH_PHOS_KEYWORDS.some(k=>f.includes(k)) || f.includes("加工") || f.includes("火腿") || f.includes("香腸")) { r.push("⛔<br>注意高磷食物！<br>請先跟註冊營養師查詢"); }
             if (HIGH_PRO_KEYWORDS.some(k=>f.includes(k))) { r.push("⚠️<br>高蛋白食物！<br>請適量進食"); }
             return r.join("");
         })(n);
-        const entry = { id: Date.now(), date: getTodayKey(), time: new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}), timeOfUse: new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}), name: n, mealType: mealType, comment: comment, location: getSelectedLocation() };
+        const entry = { id: Date.now(), date: getTodayKey(), time: new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}), timeOfUse: new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}), name: n, mealType, comment, location: getSelectedLocation() };
         let l = JSON.parse(localStorage.getItem('d_logs') || '[]'); l.unshift(entry); localStorage.setItem('d_logs', JSON.stringify(l));
         document.getElementById('foodName').value = ''; updateUI();
     }
@@ -383,31 +370,10 @@
         const type = document.getElementById('fluidType').value;
         const note = document.getElementById('fluidNote').value;
         const label = (type === '其他' && note) ? `其他(${note})` : type;
-        const entry = { id: Date.now(), date: getTodayKey(), time: new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}), timeOfUse: new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}), amt: a, label: label, location: getSelectedLocation() };
+        const entry = { id: Date.now(), date: getTodayKey(), time: new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}), timeOfUse: new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}), amt: a, label, location: getSelectedLocation() };
         let l = JSON.parse(localStorage.getItem('f_logs') || '[]'); l.unshift(entry); localStorage.setItem('f_logs', JSON.stringify(l));
         document.getElementById('fluidAmt').value = ''; document.getElementById('fluidNote').value = ''; 
         document.getElementById('fluidNote').style.display = 'none'; document.getElementById('fluidType').value = '水';
-        updateUI();
-    }
-
-    function addBloodPressure() {
-        const sys = parseInt(document.getElementById('bpSys').value);
-        const dia = parseInt(document.getElementById('bpDia').value);
-        if(!sys || !dia) return;
-        const entry = { 
-            id: Date.now(), 
-            date: getTodayKey(), 
-            time: new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),
-            timeOfUse: new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),
-            systolic: sys, 
-            diastolic: dia, 
-            location: getSelectedLocation() 
-        };
-        let l = JSON.parse(localStorage.getItem('bp_logs') || '[]'); 
-        l.unshift(entry); 
-        localStorage.setItem('bp_logs', JSON.stringify(l));
-        document.getElementById('bpSys').value = ''; 
-        document.getElementById('bpDia').value = '';
         updateUI();
     }
 
@@ -423,12 +389,6 @@
         let logs = JSON.parse(localStorage.getItem(k) || '[]'); let item = logs.find(l => l.id === id);
         if (k === 'f_logs') { let a = prompt("修改mL:", item.amt); if(a) item.amt = parseInt(a); }
         else if (k === 'd_logs') { let n = prompt("修改食物:", item.name); if(n) item.name = n; }
-        else if (k === 'bp_logs') {
-            let sys = prompt("修改收縮壓:", item.systolic);
-            let dia = prompt("修改舒張壓:", item.diastolic);
-            if(sys) item.systolic = parseInt(sys);
-            if(dia) item.diastolic = parseInt(dia);
-        }
         
         let timeOfUse = prompt("編輯發生時間 (HH:MM) [留白保持原時間]:", item.timeOfUse || item.time);
         if (timeOfUse && /^\d{1,2}:\d{2}$/.test(timeOfUse)) {
@@ -447,7 +407,7 @@
     function deleteItem(k, id) { if(confirm("刪除？")) { let logs = JSON.parse(localStorage.getItem(k) || '[]'); localStorage.setItem(k, JSON.stringify(logs.filter(l => l.id !== id))); updateUI(); } }
 
     function setupNotifications() {
-        alert("🔔 如何設定用藥提醒：\n\n由於 iPhone 的隱私保護限制，建議你設定手機內建的『鬧鐘』以獲得最穩定的提醒：\n\n1. 打開手機『時鐘』App\n2. 點擊『鬧鐘』分頁\n3. 新增 4 個鬧鐘：08:00、12:00、20:00、22:00\n4. 標籤設為『用藥時間』\n5. 設定『重複』為『每天』\n\n這樣您就會在指定時間收到提醒！💊");
+        alert("🔔 如何設定用藥提醒：\n\n由於 iPhone 的隱私保護限制，建議你設定手機內建的『鬧鐘』以獲得最穩定的提醒：\n\n1. 打開手機『時鐘』App\n2. 點擊『計時器』或『鬧鐘』\n3. 新增每日重複的鬧鐘：08:00、12:00、20:00、22:00\n4. 設定提醒文字為『用藥時間！』\n\n你也可以向藥劑師查詢其他提醒選項。💊");
     }
 
     function confirmLocationUpdate() {
@@ -464,7 +424,6 @@
         const f = JSON.parse(localStorage.getItem('f_logs') || '[]').filter(l => l.date === dateKey);
         const d = JSON.parse(localStorage.getItem('d_logs') || '[]').filter(l => l.date === dateKey);
         const m = JSON.parse(localStorage.getItem('m_list') || '[]').filter(l => l.date === dateKey);
-        const bp = JSON.parse(localStorage.getItem('bp_logs') || '[]').filter(l => l.date === dateKey);
         const fSum = f.reduce((s, l) => s + l.amt, 0);
         const mOk = MED_SLOTS.every(slot => m.map(x=>x.timeSlot).includes(slot));
         const fOk = fSum <= 800 && f.length > 0;
@@ -475,7 +434,7 @@
         if (fOk) score++; else if(hasData && fSum > 800) reasons.push("水分超標 😨");
         if (dOk) score++; else if(hasData) reasons.push("注意飲食 🙅‍♀️");
         let color = score === 3 ? "green" : (score === 2 ? "darkorange" : (score === 1 ? "darkred" : "black"));
-        return { score, color, reasons, hasData, f, d, m, bp, fSum, mOk, fOk, dOk };
+        return { score, color, reasons, hasData, f, d, m, fSum, mOk, fOk, dOk };
     }
 
     // --- REINFORCED TAB NAVIGATION ENGINE ---
@@ -513,7 +472,7 @@
     function renderMultiMonthCalendar() {
         const c = document.getElementById('multiMonthCalendarContainer'); c.innerHTML = '';
         const now = new Date(); const y = now.getFullYear(); const m = now.getMonth();
-        const allLogs = [...JSON.parse(localStorage.getItem('f_logs')||'[]'), ...JSON.parse(localStorage.getItem('m_list')||'[]'), ...JSON.parse(localStorage.getItem('d_logs')||'[]'), ...JSON.parse(localStorage.getItem('bp_logs')||'[]')];
+        const allLogs = [...JSON.parse(localStorage.getItem('f_logs')||'[]'), ...JSON.parse(localStorage.getItem('m_list')||'[]'), ...JSON.parse(localStorage.getItem('d_logs')||'[]')];
         const allDates = [...new Set(allLogs.map(l => l.date))];
         const my = [...new Set(allDates.map(d => { const dt = new Date(d); return `${dt.getFullYear()}/${dt.getMonth()+1}`; }))].sort((a,b) => b.localeCompare(a));
         if(!my.length) my.push(`${y}/${m+1}`);
@@ -527,25 +486,25 @@
             for(let day=1; day<=total; day++) {
                 const dk = `${curY}-${curM.toString().padStart(2,'0')}-${day.toString().padStart(2,'0')}`;
                 const s = calculateDayScore(dk);
-                g.innerHTML += `<div class="cal-day"><div style="font-weight:bold">${day}</div>${s.hasData?`<div class="cal-dot" style="background:${s.color}"></div><div class="cal-note">${s.reasons.length > 0 ? s.reasons.join('<br>') : '✅'}</div>`:''}</div>`;
+                g.innerHTML += `<div class="cal-day"><div style="font-weight:bold">${day}</div>${s.hasData?`<div class="cal-dot" style="background:${s.color}"></div><div class="cal-note">${s.reasons.length > 0 ? s.reasons.join('<br>') : '✅'}</div>`:''}`;
             }
             c.appendChild(g);
         });
     }
 
     function renderHistoryTable() {
-        const logs = [...JSON.parse(localStorage.getItem('f_logs')||'[]'), ...JSON.parse(localStorage.getItem('d_logs')||'[]'), ...JSON.parse(localStorage.getItem('m_list')||'[]'), ...JSON.parse(localStorage.getItem('bp_logs')||'[]')];
+        const logs = [...JSON.parse(localStorage.getItem('f_logs')||'[]'), ...JSON.parse(localStorage.getItem('d_logs')||'[]'), ...JSON.parse(localStorage.getItem('m_list')||'[]')];
         const dates = [...new Set(logs.map(x=>x.date))].sort((a,b) => b.localeCompare(a));
         document.getElementById('historyBody').innerHTML = dates.map(d => {
             const s = calculateDayScore(d); const id = d.replace(/-/g, '_');
             return `<tr><td>${d}<br><button class="view-btn" onclick="const e=document.getElementById('det-${id}'); e.style.display=e.style.display==='block'?'none':'block';">查看詳情</button></td>
                 <td>${s.mOk?'✅':'❌'}</td><td>${s.fOk?'✅':'❌'}</td><td>${s.dOk?'✅':'❌'}</td></tr>
-            <tr><td colspan="4"><div id="det-${id}" class="details-box">藥物: ${s.m.map(x=>x.timeSlot).join(', ') || '無'}<br>飲水: ${s.fSum}mL<br>飲食: ${s.d.map(x=>`${x.name} (${x.mealType})`).join(', ') || '無'}<br>血壓: ${s.bp.map(x=>`${x.systolic}/${x.diastolic}`).join(', ') || '無'}</div></td></tr>`;
+            <tr><td colspan="4"><div id="det-${id}" class="details-box">藥物: ${s.m.map(x=>x.timeSlot).join(', ') || '無'}<br>飲水: ${s.fSum}mL<br>飲食: ${s.d.map(x=>`${x.name} (${x.mealType})`).join('; ') || '無'}</div></td></tr>`;
         }).join('');
     }
 
     function exportToPDF(thisMonthOnly) {
-        const allLogs = [...JSON.parse(localStorage.getItem('f_logs')||'[]'), ...JSON.parse(localStorage.getItem('m_list')||'[]'), ...JSON.parse(localStorage.getItem('d_logs')||'[]'), ...JSON.parse(localStorage.getItem('bp_logs')||'[]')];
+        const allLogs = [...JSON.parse(localStorage.getItem('f_logs')||'[]'), ...JSON.parse(localStorage.getItem('m_list')||'[]'), ...JSON.parse(localStorage.getItem('d_logs')||'[]')];
         const dates = [...new Set(allLogs.map(l => l.date))].sort();
         const win = window.open('', '', 'height=800,width=900');
         
@@ -592,7 +551,7 @@
             for(let d=1; d<=total; d++) {
                 const dk = `${y}-${m.toString().padStart(2,'0')}-${d.toString().padStart(2,'0')}`;
                 const s = calculateDayScore(dk);
-                gHtml += `<div class="cal-day"><div>${d}</div>${s.hasData ? `<div class="cal-dot" style="background:${s.color}"></div><div class="cal-note">${s.reasons.length > 0 ? s.reasons.join('<br>') : '✅'}</div>` : ''}</div>`;
+                gHtml += `<div class="cal-day"><div>${d}</div>${s.hasData ? `<div class="cal-dot" style="background:${s.color}"></div><div class="cal-note">${s.reasons.length > 0 ? s.reasons.join('<br>') : '✅'}</div>` : ''}`;
             }
             pdfCal.innerHTML += gHtml + `</div>`;
         });
@@ -606,7 +565,6 @@
                     <p>💊 藥物: ${s.m.map(x=>`[${x.time}] ${x.timeSlot}`).join(', ') || '無'}</p>
                     <p>💧 飲水: ${s.f.map(x=>`[${x.time}] ${x.amt}mL (${x.label})`).join('; ') || '無'}</p>
                     <p>🥗 飲食: ${s.d.map(x=>`[${x.mealType}] ${x.name}`).join('; ') || '無'}</p>
-                    <p>🩸 血壓: ${s.bp.map(x=>`[${x.time}] ${x.systolic}/${x.diastolic}`).join(', ') || '無'}</p>
                 </div>`);
             }
         });
