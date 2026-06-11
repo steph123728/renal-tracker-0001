@@ -463,7 +463,12 @@
         const d = JSON.parse(localStorage.getItem('d_logs') || '[]').filter(l => l.date === dateKey);
         const m = JSON.parse(localStorage.getItem('m_list') || '[]').filter(l => l.date === dateKey);
         const fSum = f.reduce((s, l) => s + l.amt, 0);
-        const mOk = MED_SLOTS.every(slot => m.map(x=>x.timeSlot).includes(slot));
+        
+        // UPDATED MEDICATION SCORING LOGIC:
+        // mOk = true ONLY if ALL medication slots have actual medication entries (no reasons)
+        // Entries with reasons (missed medication records) are NOT counted as successfully taken
+        const mOk = MED_SLOTS.every(slot => m.map(x => x.timeSlot).includes(slot) && m.some(x => x.timeSlot === slot && !x.reason));
+        
         const fOk = fSum <= 800 && f.length > 0;
         
         // NEW LOGIC: dOk now requires:
