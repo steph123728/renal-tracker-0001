@@ -155,10 +155,6 @@
                 </select>
                 <input type="text" id="foodName" placeholder="輸入食物">
             </div>
-            <div class="food-checkbox">
-                <input type="checkbox" id="noProcessedFood">
-                <label for="noProcessedFood">確定沒有加工製品食物？</label>
-            </div>
             <button onclick="addFood()" style="background:#689f38;">紀錄</button>
             <div id="dailyFoodList" style="margin-top:10px;"></div>
         </div>
@@ -432,11 +428,6 @@
         if (locIdx && LOC_OPTIONS[locIdx-1]) {
             item.location = LOC_OPTIONS[locIdx-1];
             if (item.location === "其他") { let det = prompt("註明細節:"); if (det) item.location = `其他(${det})`; }
-        }
-        
-        if (k === 'd_logs') {
-            let processedCheck = confirm("這件食物沒有加工製品嗎？\n(點擊 '確定' = 是，'取消' = 否)");
-            item.noProcessedFood = processedCheck;
         }
         
         localStorage.setItem(k, JSON.stringify(logs)); updateUI();
