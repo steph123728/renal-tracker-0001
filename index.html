@@ -449,7 +449,12 @@
         const d = JSON.parse(localStorage.getItem('d_logs') || '[]').filter(l => l.date === dateKey);
         const m = JSON.parse(localStorage.getItem('m_list') || '[]').filter(l => l.date === dateKey);
         const fSum = f.reduce((s, l) => s + l.amt, 0);
-        const mOk = MED_SLOTS.every(slot => m.map(x=>x.timeSlot).includes(slot));
+        
+        // UPDATED MEDICATION SCORING LOGIC:
+        // mOk = true ONLY if ALL medication slots have actual medication entries (no reasons)
+        // Entries with reasons (missed medication records) are NOT counted as successfully taken
+        const mOk = MED_SLOTS.every(slot => m.map(x => x.timeSlot).includes(slot) && m.some(x => x.timeSlot === slot && !x.reason));
+        
         const fOk = fSum <= 800 && f.length > 0;
         const dOk = d.length > 0 && !d.some(l => l.comment.includes("⛔"));
         const hasData = f.length > 0 || d.length > 0 || m.length > 0;
@@ -523,7 +528,7 @@
             const s = calculateDayScore(d); const id = d.replace(/-/g, '_');
             return `<tr><td>${d}<br><button class="view-btn" onclick="const e=document.getElementById('det-${id}'); e.style.display=e.style.display==='block'?'none':'block';">查看詳情</button></td>
                 <td>${s.mOk?'✅':'❌'}</td><td>${s.fOk?'✅':'❌'}</td><td>${s.dOk?'✅':'❌'}</td></tr>
-            <tr><td colspan="4"><div id="det-${id}" class="details-box">藥物: ${s.m.map(x=>x.timeSlot).join(', ') || '無'}<br>飲水: ${s.fSum}mL<br>飲食: ${s.d.map(x=>`${x.name} (${x.mealType})`).join('; ') || '無'}</div></td></tr>`;
+            <tr><td colspan="4"><div id="det-${id}" class="details-box">藥物: ${s.m.map(x=>`[${x.time}] ${x.timeSlot}${x.reason ? ' (未用藥原因: ' + x.reason + ')' : ''}`).join(', ') || '無'}<br>飲水: ${s.fSum}mL<br>飲食: ${s.d.map(x=>`${x.name} (${x.mealType})${x.noProcessedFood ? ' ✔️' : ''}`).join('; ') || '無'}</div></td></tr>`;
         }).join('');
     }
 
@@ -586,9 +591,9 @@
             if(s.hasData) {
                 win.document.write(`<div class="day-block">
                     <h3>日期: ${d}</h3>
-                    <p>💊 藥物: ${s.m.map(x=>`[${x.time}] ${x.timeSlot}${x.reason ? ' (未用藥原因: ' + x.reason + ')' : ''}`).join(', ') || '無'}</p>
-                    <p>💧 飲水: ${s.f.map(x=>`[${x.time}] ${x.amt}mL (${x.label})`).join('; ') || '無'}</p>
-                    <p>🥗 飲食: ${s.d.map(x=>`[${x.mealType}] ${x.name}`).join('; ') || '無'}</p>
+                    <p>💊 藥物: ${s.m.map(x=>`[${x.time}] ${x.timeSlot}${x.reason ? ' (未用藥原因: ' + x.reason + ')' : ''}`).join(', ') || '沒有紀錄'}</p>
+                    <p>💧 飲水: ${s.f.map(x=>`[${x.time}] ${x.amt}mL (${x.label})`).join('; ') || '沒有紀錄'}</p>
+                    <p>🥗 飲食: ${s.d.map(x=>`[${x.mealType}] ${x.name}`).join('; ') || '沒有紀錄'}</p>
                 </div>`);
             }
         });
