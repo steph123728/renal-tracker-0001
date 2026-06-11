@@ -93,7 +93,11 @@
         .view-btn { background: #ecf0f1; color: #2c3e50; padding: 5px 8px; font-size: 0.75rem; border: 1px solid #bdc3c7; width: auto; display: inline-block; }
         .food-input-group { display: flex; gap: 5px; margin-bottom: 10px; }
         .food-input-group select { flex: 0 0 auto; width: auto; min-width: 100px; }
-        .food-input-group input { flex: 1; }
+        .food-input-group input { flex: 1; }        
+        .med-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .med-reason-box { background: #f9f9f9; border: 1px solid #e0e0e0; border-radius: 8px; padding: 10px; margin-top: 10px; }
+        .med-reason-box input { margin-bottom: 8px; }
+        .med-reason-box button { font-size: 0.9rem; padding: 8px; }
     </style>
 </head>
 <body>
@@ -154,13 +158,22 @@
 
         <!-- 💊 Medication Card -->
         <div class="card med-section">
-            <h2>💊 藥物狀態記錄</h2>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <h2>💊 藥物狀態記錄</h2>            
+            <div class="med-grid">
                 <button class="med-btn" onclick="toggleMed('08:00 (早上)')">08:00 (早上)</button>
                 <button class="med-btn" onclick="toggleMed('12:00 (中午)')">12:00 (中午)</button>
+                <button class="med-btn" onclick="toggleMed('16:00 (下午)')">16:00 (下午)</button>
                 <button class="med-btn" onclick="toggleMed('20:00 (晚上)')">20:00 (晚上)</button>
                 <button class="med-btn" onclick="toggleMed('22:00 (睡覺前)')">22:00 (睡覺前)</button>
             </div>
+            
+            <!-- Reason for Not Taking Medication -->
+            <div class="med-reason-box">
+                <label style="display: block; font-weight: bold; margin-bottom: 8px;">如沒用藥，請註明原因：</label>
+                <input type="text" id="medReasonInput" placeholder="如：血壓低於某個指數" style="margin-bottom: 8px;">
+                <button onclick="recordMedicationReason()" style="background: #e67e22; font-size: 0.9rem; padding: 8px;">記錄原因</button>
+            </div>
+            
             <div id="dailyMedList" style="margin-top:10px;"></div>
         </div>
 
@@ -212,7 +225,7 @@
 
 <script>
     const CONFIG = { LIMIT: 800, PIN: "1234" };
-    const MED_SLOTS = ['08:00 (早上)', '12:00 (中午)', '20:00 (晚上)', '22:00 (睡覺前)'];
+    const MED_SLOTS = ['08:00 (早上)', '12:00 (中午)', '16:00 (下午)', '20:00 (晚上)', '22:00 (睡覺前)'];
     const LOC_OPTIONS = ["屋企 (在客廳)", "屋企 (在床上)", "街上/商場", "醫院", "其他"];
     const HIGH_PHOS_KEYWORDS = ["奶", "乳酪", "起司", "芝士", "蛋黃", "內臟", "巧克力", "朱古力", "可樂", "咖啡", "堅果", "罐頭", "即食麵",
                                 "鵝","蛋黃", "玉子豆腐", "馬頭魚", "鯪魚", "鱸魚", "沙孟魚", "三文魚", "桂花魚", "盲曹魚", "鱔", 
@@ -294,10 +307,10 @@
         // --- 2. DARK ORANGE MISSING MEDICATION ALERTS ---
         const checkSlots = [
             { label: '08:00 (早上)', hour: 8 }, { label: '12:00 (中午)', hour: 12 },
-            { label: '20:00 (晚上)', hour: 20 }, { label: '22:00 (睡覺前)', hour: 22 }
+            { label: '16:00 (下午)', hour: 16 }, { label: '20:00 (晚上)', hour: 20 }, { label: '22:00 (睡覺前)', hour: 22 }
         ];
         let missed = checkSlots.filter(slot => curHour > slot.hour || (curHour === slot.hour && curMin >= 5)) 
-                               .filter(slot => !(s.m || []).some(log => log.timeSlot === slot.label)).map(slot => slot.label);
+                               .filter(slot => !(s.m || []).some(log => log.timeSlot === slot.label && !log.reason)).map(slot => slot.label);
         if (missed.length > 0) {
             feedbackContent += `<div style="color: #e67e22; margin-top: 10px; font-weight: bold; border-top: 1px solid rgba(230, 126, 34, 0.2); padding-top: 8px;">⚠️ 注意：暫時沒有 ${missed.join('、')} 的用藥紀錄 - 趕快補上吧！</div>`;
         }
@@ -385,6 +398,17 @@
         localStorage.setItem('m_list', JSON.stringify(l)); updateUI();
     }
 
+    function recordMedicationReason() {
+        const reason = document.getElementById('medReasonInput').value;
+        if (!reason) { alert("請輸入原因"); return; }
+        const entry = { id: Date.now(), date: getTodayKey(), time: new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}), timeOfUse: new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}), timeSlot: '(未用藥)', reason: reason, location: getSelectedLocation() };
+        let l = JSON.parse(localStorage.getItem('m_list') || '[]'); 
+        l.unshift(entry); 
+        localStorage.setItem('m_list', JSON.stringify(l));
+        document.getElementById('medReasonInput').value = '';
+        updateUI();
+    }
+    
     function editItem(k, id) {
         let logs = JSON.parse(localStorage.getItem(k) || '[]'); let item = logs.find(l => l.id === id);
         if (k === 'f_logs') { let a = prompt("修改mL:", item.amt); if(a) item.amt = parseInt(a); }
@@ -407,7 +431,7 @@
     function deleteItem(k, id) { if(confirm("刪除？")) { let logs = JSON.parse(localStorage.getItem(k) || '[]'); localStorage.setItem(k, JSON.stringify(logs.filter(l => l.id !== id))); updateUI(); } }
 
     function setupNotifications() {
-        alert("🔔 如何設定用藥提醒：\n\n由於 iPhone 的隱私保護限制，建議你設定手機內建的『鬧鐘』以獲得最穩定的提醒：\n\n1. 打開手機『時鐘』App\n2. 點擊『計時器』或『鬧鐘』\n3. 新增每日重複的鬧鐘：08:00、12:00、20:00、22:00\n4. 設定提醒文字為『用藥時間！』\n\n你也可以向藥劑師查詢其他提醒選項。💊");
+        alert("🔔 如何設定用藥提醒：\n\n由於 iPhone 的隱私保護限制，建議你設定手機內建的『鬗鐘』以獲得最穩定的提醒：\n\n1. 打開手機『時鐘』App\n2. 選擇『計時器』標籤\n3. 點擊『新增』按鈕\n4. 設定時間後選擇『重複』功能\n\n設定以下 5 個提醒時間：\n08:00 (早上)\n12:00 (中午)\n16:00 (下午)\n20:00 (晚上)\n22:00 (睡覺前)");
     }
 
     function confirmLocationUpdate() {
@@ -562,7 +586,7 @@
             if(s.hasData) {
                 win.document.write(`<div class="day-block">
                     <h3>日期: ${d}</h3>
-                    <p>💊 藥物: ${s.m.map(x=>`[${x.time}] ${x.timeSlot}`).join(', ') || '無'}</p>
+                    <p>💊 藥物: ${s.m.map(x=>`[${x.time}] ${x.timeSlot}${x.reason ? ' (未用藥原因: ' + x.reason + ')' : ''}`).join(', ') || '無'}</p>
                     <p>💧 飲水: ${s.f.map(x=>`[${x.time}] ${x.amt}mL (${x.label})`).join('; ') || '無'}</p>
                     <p>🥗 飲食: ${s.d.map(x=>`[${x.mealType}] ${x.name}`).join('; ') || '無'}</p>
                 </div>`);
