@@ -322,7 +322,7 @@
         const btns = document.getElementsByClassName('med-btn');
         MED_SLOTS.forEach((t, i) => {
             if (btns[i]) {
-                const isTaken = (s.m || []).some(x => x.timeSlot === t);
+                const isTaken = (s.m || []).some(x => x.timeSlot === t && !x.reason);
                 if (isTaken) {
                     btns[i].className = "med-btn taken";
                     btns[i].innerText = `${t} 已用藥！`;
@@ -351,7 +351,7 @@
         const builder = (logs, k) => (logs || []).map(x => `
             <div class="entry-log-item">
                 <div style="display:flex; justify-content:space-between; align-items: flex-start;">
-                    <div>[${x.timeOfUse || x.time}] ${x.name || x.label || x.timeSlot || ''} ${x.amt ? x.amt + 'mL' : ''} ${x.mealType ? '(' + x.mealType + ')' : ''} @${x.location || ''}</div>
+                    <div>[${x.timeOfUse || x.time}] ${x.name || x.label || x.timeSlot || ''} ${x.amt ? x.amt + 'mL' : ''} ${x.mealType ? '(' + x.mealType + ')' : ''} @${x.location || ''} ${x.noProcessedFood ? '✔️已確認無加工' : ''} ${x.reason ? '⚠️ 原因: ' + x.reason : ''}</div>
                     <div style="display:flex; gap:5px; margin-left:10px;">
                         <button onclick="editItem('${k}', ${x.id})" style="background:#f1c40f; color:black; padding:4px 8px; font-size:10px; width:auto; margin:0;">修改</button> 
                         <button onclick="deleteItem('${k}', ${x.id})" style="background:#e74c3c; color:white; padding:4px 8px; font-size:10px; width:auto; margin:0;">刪除</button>
@@ -392,7 +392,7 @@
 
     function toggleMed(slot) {
         let l = JSON.parse(localStorage.getItem('m_list') || '[]'); const today = getTodayKey();
-        const ex = l.find(x => x.date === today && x.timeSlot === slot);
+        const ex = l.find(x => x.date === today && x.timeSlot === slot && !x.reason);
         if (ex) { if(confirm("取消記錄？")) l = l.filter(x => x !== ex); }
         else { l.unshift({ id: Date.now(), date: today, time: new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}), timeOfUse: new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}), timeSlot: slot, location: getSelectedLocation() }); }
         localStorage.setItem('m_list', JSON.stringify(l)); updateUI();
